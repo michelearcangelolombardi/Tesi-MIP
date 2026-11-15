@@ -1,0 +1,1113 @@
+==============================================================================
+Esecuzione del 15/11/2026 21:20
+File di input: Case_Study_MIP.xlsx  (impronta 4c2743495d445670)
+==============================================================================
+
+PASSAGGIO 1 – Input letti dal file Excel
+Caso Struttura del MIP  Equity all'ingresso  Investimento del fondo  Prezzo del MIP (€m)  Prezzo per azione (€)  Prezzo / equity all'ingresso  Equity alla valutazione  T (anni)  t exit (anni)  Volatilità valutazione  Volatilità ingresso  Risk-free continuo valutazione  Ke valutazione
+   A             cliff                240.0                  231.09                 8.91                   8.91                        0.0371                   262.81    5.1973         6.0027                   0.398                0.429                         0.03414         0.13776
+   B          catch-up                560.0                  552.98                 7.02                   7.02                        0.0125                   599.60    5.1973         6.0027                   0.323                0.364                         0.03414         0.09952
+   C              call                375.0                  360.61                14.39                  14.39                        0.0384                   407.04    5.1973         6.0027                   0.529                0.511                         0.03414         0.12291
+  Caso A: parametri {'hurdle_mom': 1.6, 'q_base': 0.08, 'ratchet_mom': 2.5, 'q_ratchet': 0.12} | soglie all'exit base {'hurdle': 369.74, 'ratchet': 577.73}
+  Caso B: parametri {'hurdle_irr': 0.07, 'hurdle_mom': 1.5, 'c': 0.1, 's': 0.035} | soglie all'exit base {'hurdle': 830.03, 'fine_catch_up': 979.21}
+  Caso C: parametri {'hurdle_irr': 0.09, 'hurdle_mom': 1.6, 'p': 0.1} | soglie all'exit base {'hurdle': 604.92}
+
+PASSAGGIO 1 – Verifica della waterfall contro i fogli Waterfall_A/B/C
+  Colonne di test: A 13, B 16, C 10 (totale 39); confronti: 330
+  Differenza massima waterfall: 2.27e-13  (tolleranza 1e-09)  -> OK
+  Differenza massima Test_Breakpoint: 0.0000  (tolleranza 1e-09)  -> OK
+
+Risultati salvati in: risultati/01_verifica_waterfall.xlsx
+
+==============================================================================
+PASSAGGIO 2 – OPM e PWERM
+==============================================================================
+
+Valore del MIP (€m) alla data di valutazione
+Caso                         A     B      C
+Modello                                    
+OPM (Black-Scholes)      8.996 6.971 16.038
+PWERM da prassi          8.625 8.276  8.842
+PWERM da quantili (N=5) 13.600 9.657 20.522
+
+Valore del MIP (€m) alla data di ingresso
+Caso                         A      B      C
+Modello                                     
+OPM (Black-Scholes)      8.906  7.024 14.391
+PWERM da prassi          7.953  7.682  8.201
+PWERM da quantili (N=5) 13.849 10.034 19.359
+
+  Caso A, componente ratchet (OPM): valutazione 2.735 €m, ingresso 2.760 €m
+
+Scomposizione PWERM vs OPM (€m, data di valutazione)
+                                                             A      B       C
+PWERM da prassi                                          8.625  8.276   8.842
+PWERM da quantili (N=5)                                 13.600  9.657  20.522
+PWERM da quantili (N→∞)                                 14.133  9.686  20.747
+OPM                                                      8.996  6.971  16.038
+Differenza totale (prassi − OPM)                        -0.371  1.305  -7.196
+  di cui soggettività degli scenari (prassi − quantili) -4.975 -1.381 -11.679
+  di cui discretizzazione (quantili N − quantili ∞)     -0.532 -0.030  -0.225
+  di cui misura e tasso di sconto (quantili ∞ − OPM)     5.136  2.716   4.709
+
+Test art. 60 all'ingresso
+Caso                 Modello  Fair value all'ingresso (€m) Fair value / equity all'ingresso Soglia 1% rispettata  Prezzo pagato (€m)  Fair value − prezzo (€m)
+   A     OPM (Black-Scholes)                         8.906                            3.71%                   Sì               8.910                    -0.004
+   A         PWERM da prassi                         7.953                            3.31%                   Sì               8.910                    -0.957
+   A PWERM da quantili (N=5)                        13.849                            5.77%                   Sì               8.910                     4.939
+   B     OPM (Black-Scholes)                         7.024                            1.25%                   Sì               7.020                     0.004
+   B         PWERM da prassi                         7.682                            1.37%                   Sì               7.020                     0.662
+   B PWERM da quantili (N=5)                        10.034                            1.79%                   Sì               7.020                     3.014
+   C     OPM (Black-Scholes)                        14.391                            3.84%                   Sì              14.390                     0.001
+   C         PWERM da prassi                         8.201                            2.19%                   Sì              14.390                    -6.189
+   C PWERM da quantili (N=5)                        19.359                            5.16%                   Sì              14.390                     4.969
+
+Convergenza del PWERM da quantili (€m, data di valutazione)
+Caso    N=3    N=5   N=10   N=20   N=50  N=100  N=1000    N→∞
+   A 13.984 13.600 14.189 14.208 14.132 14.132  14.132 14.133
+   B  9.072  9.657  9.657  9.687  9.686  9.686   9.686  9.686
+   C 20.747 20.522 20.684 20.731 20.744 20.747  20.747 20.747
+
+Scenari di prassi e soglie (data di valutazione)
+Caso         scenario  anno_exit  probabilita  equity_exit               regime  mip_exit  valore_attuale_pesato
+   A           Upside       2031        0.200      724.332     oltre il ratchet    42.551                  4.351
+   A             Base       2031        0.300      527.781 tra hurdle e ratchet    12.643                  1.939
+   A  Exit anticipata       2029        0.150      413.958 tra hurdle e ratchet     3.537                  0.351
+   A Exit posticipata       2033        0.150      648.839     oltre il ratchet    33.491                  1.984
+   A         Downside       2031        0.150      305.126       sotto l'hurdle     0.000                  0.000
+   A  Downside severo       2031        0.050      189.960       sotto l'hurdle     0.000                  0.000
+   B           Upside       2031        0.200    1,372.680    oltre il catch-up    28.690                  3.504
+   B             Base       2031        0.400      984.693    oltre il catch-up    15.110                  3.691
+   B  Exit anticipata       2029        0.100      821.730       sotto l'hurdle     0.000                  0.000
+   B Exit posticipata       2033        0.100    1,164.280         nel catch-up    21.381                  1.080
+   B         Downside       2031        0.150      706.513       sotto l'hurdle     0.000                  0.000
+   B  Downside severo       2031        0.050      234.340       sotto l'hurdle     0.000                  0.000
+   C           Upside       2031        0.200    1,007.313       oltre l'hurdle    40.239                  4.406
+   C             Base       2031        0.300      766.966       oltre l'hurdle    16.204                  2.661
+   C  Exit anticipata       2029        0.150      616.101       oltre l'hurdle     3.913                  0.405
+   C Exit posticipata       2033        0.150      929.322       oltre l'hurdle    21.044                  1.370
+   C         Downside       2031        0.150      476.737       sotto l'hurdle     0.000                  0.000
+   C  Downside severo       2031        0.050      268.135       sotto l'hurdle     0.000                  0.000
+
+Varianti, valore OPM (data di valutazione)
+Caso  Variante  Valore OPM (€m)  Differenza dal caso base (€m) Differenza %
+   A Caso base            8.996                          0.000        +0.0%
+   A        V5            8.996                         -0.000        -0.0%
+   A        V6            8.091                         -0.906       -10.1%
+   B Caso base            6.971                          0.000        +0.0%
+   B        V1            6.971                          0.000        +0.0%
+   B        V2            6.971                          0.000        +0.0%
+   B        V7            4.962                         -2.009       -28.8%
+   B        V8            6.607                         -0.364        -5.2%
+   C Caso base           16.038                          0.000        +0.0%
+   C        V3           16.038                          0.000        +0.0%
+   C        V4           16.038                          0.000        +0.0%
+
+Risultati salvati in: risultati/02_opm_pwerm.xlsx
+
+==============================================================================
+PASSAGGIO 3 – Alberi binomiale e trinomiale
+==============================================================================
+
+Valore del MIP (€m) alla data di valutazione
+Caso                                               A     B      C
+Configurazione             Modello                               
+Exit fissa, senza leaver   OPM (Black-Scholes) 8.996 6.971 16.038
+                           Albero binomiale    8.926 6.958 16.050
+                           Albero trinomiale   8.913 6.973 16.035
+Exit incerta, senza leaver OPM (Black-Scholes) 8.912 6.684 15.697
+                           Albero binomiale    8.916 6.684 15.698
+                           Albero trinomiale   8.932 6.683 15.696
+Exit fissa, con leaver     Albero binomiale    7.586 6.136 13.799
+                           Albero trinomiale   7.568 6.148 13.791
+Exit incerta, con leaver   Albero binomiale    7.544 5.887 13.490
+                           Albero trinomiale   7.557 5.885 13.489
+
+Valore del MIP (€m) alla data di ingresso
+Caso                                               A     B      C
+Configurazione             Modello                               
+Exit fissa, senza leaver   OPM (Black-Scholes) 8.906 7.024 14.391
+                           Albero binomiale    8.978 7.004 14.402
+                           Albero trinomiale   8.959 7.040 14.372
+Exit incerta, senza leaver OPM (Black-Scholes) 8.839 6.802 14.113
+                           Albero binomiale    8.822 6.803 14.113
+                           Albero trinomiale   8.843 6.801 14.112
+Exit fissa, con leaver     Albero binomiale    7.395 6.028 12.007
+                           Albero trinomiale   7.384 6.059 11.984
+Exit incerta, con leaver   Albero binomiale    7.246 5.849 11.768
+                           Albero trinomiale   7.263 5.848 11.768
+
+Caso A, componente ratchet alla data di valutazione (€m)
+            Configurazione             Modello  Componente ratchet (€m)
+  Exit fissa, senza leaver OPM (Black-Scholes)                    2.735
+  Exit fissa, senza leaver    Albero binomiale                    2.659
+  Exit fissa, senza leaver   Albero trinomiale                    2.659
+Exit incerta, senza leaver    Albero binomiale                    2.710
+Exit incerta, senza leaver   Albero trinomiale                    2.725
+    Exit fissa, con leaver    Albero binomiale                    2.212
+    Exit fissa, con leaver   Albero trinomiale                    2.205
+  Exit incerta, con leaver    Albero binomiale                    2.241
+  Exit incerta, con leaver   Albero trinomiale                    2.254
+
+Dispersione tra modelli option-based
+Caso                          Configurazione  Modelli  Minimo (€m)  Massimo (€m) Dispersione
+   A                Exit fissa, senza leaver        3        8.913         8.996        0.9%
+   A              Exit incerta, senza leaver        3        8.912         8.932        0.2%
+   A                  Exit fissa, con leaver        2        7.568         7.586        0.2%
+   A                Exit incerta, con leaver        2        7.544         7.557        0.2%
+   B                Exit fissa, senza leaver        3        6.958         6.973        0.2%
+   B              Exit incerta, senza leaver        3        6.683         6.684        0.0%
+   B                  Exit fissa, con leaver        2        6.136         6.148        0.2%
+   B                Exit incerta, con leaver        2        5.885         5.887        0.0%
+   C                Exit fissa, senza leaver        3       16.035        16.050        0.1%
+   C              Exit incerta, senza leaver        3       15.696        15.698        0.0%
+   C                  Exit fissa, con leaver        2       13.791        13.799        0.1%
+   C                Exit incerta, con leaver        2       13.489        13.490        0.0%
+   A Prassi: OPM semplice vs alberi completi        3        7.544         8.996       19.2%
+   B Prassi: OPM semplice vs alberi completi        3        5.885         6.971       18.4%
+   C Prassi: OPM semplice vs alberi completi        3       13.489        16.038       18.9%
+
+Test art. 60 all'ingresso
+Caso             Configurazione             Modello  Valore del MIP (€m) Valore / equity Soglia 1% rispettata  Fair value − prezzo (€m)
+   A   Exit fissa, senza leaver OPM (Black-Scholes)                8.906           3.71%                   Sì                    -0.004
+   A   Exit fissa, senza leaver    Albero binomiale                8.978           3.74%                   Sì                     0.068
+   A   Exit fissa, senza leaver   Albero trinomiale                8.959           3.73%                   Sì                     0.049
+   A Exit incerta, senza leaver OPM (Black-Scholes)                8.839           3.68%                   Sì                    -0.071
+   A Exit incerta, senza leaver    Albero binomiale                8.822           3.68%                   Sì                    -0.088
+   A Exit incerta, senza leaver   Albero trinomiale                8.843           3.68%                   Sì                    -0.067
+   A     Exit fissa, con leaver    Albero binomiale                7.395           3.08%                   Sì                    -1.515
+   A     Exit fissa, con leaver   Albero trinomiale                7.384           3.08%                   Sì                    -1.526
+   A   Exit incerta, con leaver    Albero binomiale                7.246           3.02%                   Sì                    -1.664
+   A   Exit incerta, con leaver   Albero trinomiale                7.263           3.03%                   Sì                    -1.647
+   B   Exit fissa, senza leaver OPM (Black-Scholes)                7.024           1.25%                   Sì                     0.004
+   B   Exit fissa, senza leaver    Albero binomiale                7.004           1.25%                   Sì                    -0.016
+   B   Exit fissa, senza leaver   Albero trinomiale                7.040           1.26%                   Sì                     0.020
+   B Exit incerta, senza leaver OPM (Black-Scholes)                6.802           1.21%                   Sì                    -0.218
+   B Exit incerta, senza leaver    Albero binomiale                6.803           1.21%                   Sì                    -0.217
+   B Exit incerta, senza leaver   Albero trinomiale                6.801           1.21%                   Sì                    -0.219
+   B     Exit fissa, con leaver    Albero binomiale                6.028           1.08%                   Sì                    -0.992
+   B     Exit fissa, con leaver   Albero trinomiale                6.059           1.08%                   Sì                    -0.961
+   B   Exit incerta, con leaver    Albero binomiale                5.849           1.04%                   Sì                    -1.171
+   B   Exit incerta, con leaver   Albero trinomiale                5.848           1.04%                   Sì                    -1.172
+   C   Exit fissa, senza leaver OPM (Black-Scholes)               14.391           3.84%                   Sì                     0.001
+   C   Exit fissa, senza leaver    Albero binomiale               14.402           3.84%                   Sì                     0.012
+   C   Exit fissa, senza leaver   Albero trinomiale               14.372           3.83%                   Sì                    -0.018
+   C Exit incerta, senza leaver OPM (Black-Scholes)               14.113           3.76%                   Sì                    -0.277
+   C Exit incerta, senza leaver    Albero binomiale               14.113           3.76%                   Sì                    -0.277
+   C Exit incerta, senza leaver   Albero trinomiale               14.112           3.76%                   Sì                    -0.278
+   C     Exit fissa, con leaver    Albero binomiale               12.007           3.20%                   Sì                    -2.383
+   C     Exit fissa, con leaver   Albero trinomiale               11.984           3.20%                   Sì                    -2.406
+   C   Exit incerta, con leaver    Albero binomiale               11.768           3.14%                   Sì                    -2.622
+   C   Exit incerta, con leaver   Albero trinomiale               11.768           3.14%                   Sì                    -2.622
+
+Convergenza degli alberi (€m, exit fissa, data di valutazione)
+Caso     Albero  Black-Scholes   N=25   N=50  N=100  N=200  N=500  N=1000  Media N=1000 e 1001
+   A  binomiale          8.996  9.170  8.830  8.946  8.926  9.025   9.016                8.995
+   A trinomiale          8.996  8.955  9.028  8.860  8.913  8.961   9.024                  NaN
+   B  binomiale          6.971  7.124  7.009  6.963  6.958  6.961   6.964                6.971
+   B trinomiale          6.971  7.064  6.953  6.997  6.973  6.970   6.969                  NaN
+   C  binomiale         16.038 16.131 16.025 16.066 16.050 16.043  16.038               16.039
+   C trinomiale         16.038 15.836 16.031 15.999 16.035 16.035  16.032                  NaN
+
+Varianti: exit fissa ed exit incerta
+Caso  Variante  Exit fissa (€m)  Exit incerta (€m) Δ% exit fissa Δ% exit incerta
+   A Caso base            8.996              8.912         +0.0%           +0.0%
+   A        V5            8.996              8.912         -0.0%           -0.0%
+   A        V6            8.091              8.026        -10.1%           -9.9%
+   B Caso base            6.971              6.684         +0.0%           +0.0%
+   B        V1            6.971              6.887         +0.0%           +3.0%
+   B        V2            6.971              6.849         +0.0%           +2.5%
+   B        V7            4.962              4.646        -28.8%          -30.5%
+   B        V8            6.607              6.186         -5.2%           -7.5%
+   C Caso base           16.038             15.697         +0.0%           +0.0%
+   C        V3           16.038             15.942         +0.0%           +1.6%
+   C        V4           16.038             15.880         +0.0%           +1.2%
+
+Risultati salvati in: risultati/03_alberi.xlsx
+
+==============================================================================
+PASSAGGIO 4 – Monte Carlo
+==============================================================================
+
+Monte Carlo alla data di valutazione (€m)
+Caso             Configurazione  Valore del MIP (€m)  Errore standard (€m)  IC 95% min  IC 95% max  Senza variabile di controllo (€m)  Errore standard senza controllo (€m)
+   A   Exit fissa, senza leaver                9.000                 0.004       8.993       9.007                              9.121                                 0.088
+   A Exit incerta, senza leaver                8.910                 0.004       8.902       8.917                              9.072                                 0.093
+   A     Exit fissa, con leaver                7.693                 0.034       7.627       7.760                              7.794                                 0.080
+   A   Exit incerta, con leaver                7.508                 0.042       7.426       7.590                              7.628                                 0.080
+   B   Exit fissa, senza leaver                6.974                 0.007       6.960       6.988                              7.042                                 0.046
+   B Exit incerta, senza leaver                6.692                 0.008       6.677       6.708                              6.733                                 0.047
+   B     Exit fissa, con leaver                6.167                 0.019       6.130       6.203                              6.225                                 0.043
+   B   Exit incerta, con leaver                5.902                 0.020       5.862       5.942                              5.936                                 0.044
+   C   Exit fissa, senza leaver               16.038                 0.000      16.038      16.038                             16.253                                 0.200
+   C Exit incerta, senza leaver               15.697                 0.000      15.697      15.697                             16.049                                 0.228
+   C     Exit fissa, con leaver               13.897                 0.075      13.750      14.043                             14.076                                 0.183
+   C   Exit incerta, con leaver               13.407                 0.109      13.193      13.622                             13.632                                 0.182
+
+Monte Carlo alla data di ingresso (€m)
+Caso             Configurazione  Valore del MIP (€m)  Errore standard (€m)  IC 95% min  IC 95% max  Senza variabile di controllo (€m)  Errore standard senza controllo (€m)
+   A   Exit fissa, senza leaver                8.907                 0.003       8.900       8.913                              9.010                                 0.105
+   A Exit incerta, senza leaver                8.837                 0.003       8.830       8.844                              9.003                                 0.107
+   A     Exit fissa, con leaver                7.330                 0.044       7.244       7.417                              7.410                                 0.092
+   A   Exit incerta, con leaver                7.291                 0.043       7.206       7.376                              7.423                                 0.096
+   B   Exit fissa, senza leaver                7.019                 0.007       7.005       7.033                              7.077                                 0.057
+   B Exit incerta, senza leaver                6.806                 0.008       6.790       6.823                              6.892                                 0.060
+   B     Exit fissa, con leaver                6.036                 0.024       5.989       6.082                              6.083                                 0.052
+   B   Exit incerta, con leaver                5.847                 0.025       5.797       5.897                              5.916                                 0.054
+   C   Exit fissa, senza leaver               14.391                 0.000      14.391      14.391                             14.569                                 0.199
+   C Exit incerta, senza leaver               14.113                 0.000      14.113      14.113                             14.371                                 0.202
+   C     Exit fissa, con leaver               11.976                 0.084      11.811      12.141                             12.111                                 0.173
+   C   Exit incerta, con leaver               11.837                 0.080      11.679      11.994                             12.045                                 0.182
+
+Caso A, componente ratchet con il Monte Carlo (€m, data di valutazione)
+            Configurazione  Componente ratchet (€m)
+  Exit fissa, senza leaver                    2.738
+Exit incerta, senza leaver                    2.703
+    Exit fissa, con leaver                    2.292
+  Exit incerta, con leaver                    2.225
+
+Mappa di convergenza tra modelli option-based (€m, data di valutazione)
+Caso                           Configurazione OPM (Black-Scholes) Albero binomiale Albero trinomiale Monte Carlo Dispersione Dispersione componente ratchet
+   A                 Exit fissa, senza leaver               8.996            8.926             8.913       9.000        1.0%                           3.0%
+   A               Exit incerta, senza leaver               8.912            8.916             8.932       8.910        0.2%                           0.8%
+   A                   Exit fissa, con leaver                                7.586             7.568       7.693        1.7%                           3.9%
+   A                 Exit incerta, con leaver                                7.544             7.557       7.508        0.6%                           1.3%
+   B                 Exit fissa, senza leaver               6.971            6.958             6.973       6.974        0.2%                               
+   B               Exit incerta, senza leaver               6.684            6.684             6.683       6.692        0.1%                               
+   B                   Exit fissa, con leaver                                6.136             6.148       6.167        0.5%                               
+   B                 Exit incerta, con leaver                                5.887             5.885       5.902        0.3%                               
+   C                 Exit fissa, senza leaver              16.038           16.050            16.035      16.038        0.1%                               
+   C               Exit incerta, senza leaver              15.697           15.698            15.696      15.697        0.0%                               
+   C                   Exit fissa, con leaver                               13.799            13.791      13.897        0.8%                               
+   C                 Exit incerta, con leaver                               13.490            13.489      13.407        0.6%                               
+   A Prassi: OPM semplice vs modelli completi                                                                          19.7%                               
+   B Prassi: OPM semplice vs modelli completi                                                                          18.4%                               
+   C Prassi: OPM semplice vs modelli completi                                                                          19.5%                               
+
+PWERM e modelli option-based (data di valutazione)
+Caso                 Modello  Valore (€m)  Mediana option-based, exit fissa senza leaver (€m) Scarto % (exit fissa)  Mediana option-based, exit incerta con leaver (€m) Scarto % (completo)
+   A         PWERM da prassi        8.625                                               8.961                 -3.7%                                               7.544              +14.3%
+   A PWERM da quantili (N=5)       13.600                                               8.961                +51.8%                                               7.544              +80.3%
+   B         PWERM da prassi        8.276                                               6.972                +18.7%                                               5.887              +40.6%
+   B PWERM da quantili (N=5)        9.657                                               6.972                +38.5%                                               5.887              +64.0%
+   C         PWERM da prassi        8.842                                              16.038                -44.9%                                              13.489              -34.4%
+   C PWERM da quantili (N=5)       20.522                                              16.038                +28.0%                                              13.489              +52.1%
+
+Test art. 60 all'ingresso
+Caso           Configurazione             Modello  Valore del MIP (€m) Valore / equity Soglia 1% rispettata  Fair value − prezzo (€m)
+   A Exit fissa, senza leaver OPM (Black-Scholes)                8.906           3.71%                   Sì                    -0.004
+   A Exit fissa, senza leaver    Albero binomiale                8.978           3.74%                   Sì                     0.068
+   A Exit fissa, senza leaver   Albero trinomiale                8.959           3.73%                   Sì                     0.049
+   A Exit fissa, senza leaver         Monte Carlo                8.907           3.71%                   Sì                    -0.003
+   A Exit incerta, con leaver    Albero binomiale                7.246           3.02%                   Sì                    -1.664
+   A Exit incerta, con leaver   Albero trinomiale                7.263           3.03%                   Sì                    -1.647
+   A Exit incerta, con leaver         Monte Carlo                7.291           3.04%                   Sì                    -1.619
+   B Exit fissa, senza leaver OPM (Black-Scholes)                7.024           1.25%                   Sì                     0.004
+   B Exit fissa, senza leaver    Albero binomiale                7.004           1.25%                   Sì                    -0.016
+   B Exit fissa, senza leaver   Albero trinomiale                7.040           1.26%                   Sì                     0.020
+   B Exit fissa, senza leaver         Monte Carlo                7.019           1.25%                   Sì                    -0.001
+   B Exit incerta, con leaver    Albero binomiale                5.849           1.04%                   Sì                    -1.171
+   B Exit incerta, con leaver   Albero trinomiale                5.848           1.04%                   Sì                    -1.172
+   B Exit incerta, con leaver         Monte Carlo                5.847           1.04%                   Sì                    -1.173
+   C Exit fissa, senza leaver OPM (Black-Scholes)               14.391           3.84%                   Sì                     0.001
+   C Exit fissa, senza leaver    Albero binomiale               14.402           3.84%                   Sì                     0.012
+   C Exit fissa, senza leaver   Albero trinomiale               14.372           3.83%                   Sì                    -0.018
+   C Exit fissa, senza leaver         Monte Carlo               14.391           3.84%                   Sì                     0.001
+   C Exit incerta, con leaver    Albero binomiale               11.768           3.14%                   Sì                    -2.622
+   C Exit incerta, con leaver   Albero trinomiale               11.768           3.14%                   Sì                    -2.622
+   C Exit incerta, con leaver         Monte Carlo               11.837           3.16%                   Sì                    -2.553
+
+Convergenza del Monte Carlo (exit fissa, data di valutazione)
+Caso  Simulazioni  Black-Scholes  MC semplice  Errore standard semplice  Scarto semplice in errori standard  MC con controllo  Errore standard con controllo
+   A        10000          8.996        9.329                     0.293                               1.134             9.003                          0.012
+   A        50000          8.996        9.000                     0.123                               0.027             8.995                          0.005
+   A       100000          8.996        9.121                     0.088                               1.423             9.000                          0.004
+   A       500000          8.996        8.937                     0.039                              -1.522             8.997                          0.002
+   B        10000          6.971        7.113                     0.149                               0.954             6.954                          0.022
+   B        50000          6.971        6.981                     0.064                               0.162             6.976                          0.010
+   B       100000          6.971        7.042                     0.046                               1.567             6.974                          0.007
+   B       500000          6.971        6.939                     0.020                              -1.572             6.971                          0.003
+   C        10000         16.038       16.815                     0.702                               1.107            16.038                          0.000
+   C        50000         16.038       16.018                     0.280                              -0.070            16.038                          0.000
+   C       100000         16.038       16.253                     0.200                               1.074            16.038                          0.000
+   C       500000         16.038       15.917                     0.089                              -1.352            16.038                          0.000
+
+Varianti con il Monte Carlo completo
+Caso  Variante  Valore MC completo (€m)  Errore standard (€m) Δ% dal caso base
+   A Caso base                    7.508                 0.042            +0.0%
+   A        V5                    7.507                 0.042            -0.0%
+   A        V6                    6.755                 0.040           -10.0%
+   B Caso base                    5.902                 0.020            +0.0%
+   B        V1                    6.256                 0.019            +6.0%
+   B        V2                    6.030                 0.020            +2.2%
+   B        V7                    4.083                 0.016           -30.8%
+   B        V8                    5.416                 0.022            -8.2%
+   C Caso base                   13.407                 0.109            +0.0%
+   C        V3                   14.011                 0.109            +4.5%
+   C        V4                   13.452                 0.110            +0.3%
+
+Leaver: prezzo al valore intrinseco o al fair value (Monte Carlo, exit incerta)
+       Data Caso          Prezzo pagato al leaver  Valore del MIP (€m)  Errore standard (€m)  Senza leaver (€m) Effetto dei leaver Valore / equity
+valutazione    A    Valore intrinseco (caso base)                7.508                 0.042              8.910             -15.7%           2.86%
+valutazione    A Fair value (valore dell'opzione)                8.441                 0.040              8.910              -5.3%           3.21%
+valutazione    B    Valore intrinseco (caso base)                5.902                 0.020              6.692             -11.8%           0.98%
+valutazione    B Fair value (valore dell'opzione)                6.417                 0.019              6.692              -4.1%           1.07%
+valutazione    C    Valore intrinseco (caso base)               13.407                 0.109             15.697             -14.6%           3.29%
+valutazione    C Fair value (valore dell'opzione)               14.754                 0.108             15.697              -6.0%           3.62%
+   ingresso    A    Valore intrinseco (caso base)                7.291                 0.043              8.837             -17.5%           3.04%
+   ingresso    A Fair value (valore dell'opzione)                8.298                 0.042              8.837              -6.1%           3.46%
+   ingresso    B    Valore intrinseco (caso base)                5.847                 0.025              6.806             -14.1%           1.04%
+   ingresso    B Fair value (valore dell'opzione)                6.428                 0.024              6.806              -5.6%           1.15%
+   ingresso    C    Valore intrinseco (caso base)               11.837                 0.080             14.113             -16.1%           3.16%
+   ingresso    C Fair value (valore dell'opzione)               13.249                 0.079             14.113              -6.1%           3.53%
+
+Risultati salvati in: risultati/04_montecarlo.xlsx
+
+==============================================================================
+PASSAGGIO 5 – Modello strutturale
+==============================================================================
+
+Calibrazione di V0 (data di valutazione)
+Caso σ attivo Volatilità dell'attivo  V0 calibrato (€m)  EV da business plan (€m) V0 / EV − 1  Debito all'exit (€m) Volatilità equity implicita iniziale Volatilità equity del GBM  Equity osservato (€m)  Verifica MC: equity media scontata (€m)  Errore standard verifica (€m)
+   A     peer                  25.2%            440.819                   423.707        4.0%                86.440                                41.6%                     39.8%                262.813                                  263.277                          0.321
+   A coerente                  24.0%            441.122                   423.707        4.1%                86.440                                39.8%                     39.8%                262.813                                      NaN                            NaN
+   B     peer                  16.8%          1,196.884                 1,161.016        3.1%               479.410                                33.1%                     32.3%                599.598                                  600.171                          0.408
+   B coerente                  16.4%          1,197.235                 1,161.016        3.1%               479.410                                32.3%                     32.3%                599.598                                      NaN                            NaN
+   C     peer                  33.0%            674.246                   657.036        2.6%               140.000                                52.6%                     52.9%                407.036                                  408.303                          0.867
+   C coerente                  33.2%            674.044                   657.036        2.6%               140.000                                52.9%                     52.9%                407.036                                      NaN                            NaN
+
+Valore del MIP (€m) alla data di valutazione
+Caso                                                           A     B      C
+Configurazione             Modello                                           
+Exit fissa, senza leaver   Monte Carlo sull'equity         9.000 6.974 16.038
+                           Strutturale (σ attivo dei peer) 8.292 7.033 14.577
+                           Strutturale (σ attivo coerente) 7.778 6.871 14.676
+Exit incerta, senza leaver Monte Carlo sull'equity         8.910 6.692 15.697
+                           Strutturale (σ attivo dei peer) 8.189 6.706 14.152
+                           Strutturale (σ attivo coerente) 7.685 6.541 14.250
+Exit fissa, con leaver     Monte Carlo sull'equity         7.693 6.167 13.897
+                           Strutturale (σ attivo dei peer) 7.111 6.254 12.656
+                           Strutturale (σ attivo coerente) 6.667 6.109 12.741
+Exit incerta, con leaver   Monte Carlo sull'equity         7.508 5.902 13.407
+                           Strutturale (σ attivo dei peer) 6.965 5.981 12.257
+                           Strutturale (σ attivo coerente) 6.531 5.834 12.341
+
+Valore del MIP (€m) alla data di ingresso
+Caso                                                           A     B      C
+Configurazione             Modello                                           
+Exit fissa, senza leaver   Monte Carlo sull'equity         8.907 7.019 14.391
+                           Strutturale (σ attivo dei peer) 7.972 7.014 12.821
+                           Strutturale (σ attivo coerente) 7.389 6.826 12.807
+Exit incerta, senza leaver Monte Carlo sull'equity         8.837 6.806 14.113
+                           Strutturale (σ attivo dei peer) 7.900 6.791 12.476
+                           Strutturale (σ attivo coerente) 7.323 6.601 12.462
+Exit fissa, con leaver     Monte Carlo sull'equity         7.330 6.036 11.976
+                           Strutturale (σ attivo dei peer) 6.656 6.118 10.837
+                           Strutturale (σ attivo coerente) 6.169 5.956 10.825
+Exit incerta, con leaver   Monte Carlo sull'equity         7.291 5.847 11.837
+                           Strutturale (σ attivo dei peer) 6.604 5.933 10.614
+                           Strutturale (σ attivo coerente) 6.119 5.768 10.602
+
+Differenza dal Monte Carlo sull'equity (data di valutazione)
+Caso                                                             A      B      C
+Configurazione             Modello                                              
+Exit fissa, senza leaver   Monte Carlo sull'equity           +0.0%  +0.0%  +0.0%
+                           Strutturale (σ attivo dei peer)   -7.9%  +0.8%  -9.1%
+                           Strutturale (σ attivo coerente)  -13.6%  -1.5%  -8.5%
+Exit incerta, senza leaver Monte Carlo sull'equity           +0.0%  +0.0%  +0.0%
+                           Strutturale (σ attivo dei peer)   -8.1%  +0.2%  -9.8%
+                           Strutturale (σ attivo coerente)  -13.7%  -2.3%  -9.2%
+Exit fissa, con leaver     Monte Carlo sull'equity           +0.0%  +0.0%  +0.0%
+                           Strutturale (σ attivo dei peer)   -7.6%  +1.4%  -8.9%
+                           Strutturale (σ attivo coerente)  -13.3%  -0.9%  -8.3%
+Exit incerta, con leaver   Monte Carlo sull'equity           +0.0%  +0.0%  +0.0%
+                           Strutturale (σ attivo dei peer)   -7.2%  +1.3%  -8.6%
+                           Strutturale (σ attivo coerente)  -13.0%  -1.2%  -7.9%
+
+Caso A, componente ratchet (€m, data di valutazione)
+Modello                     Monte Carlo sull'equity  Strutturale (σ attivo dei peer)  Strutturale (σ attivo coerente)
+Configurazione                                                                                                       
+Exit fissa, senza leaver                      2.738                            2.432                            2.246
+Exit incerta, senza leaver                    2.703                            2.394                            2.214
+Exit fissa, con leaver                        2.292                            2.025                            1.866
+Exit incerta, con leaver                      2.225                            1.973                            1.819
+
+Scomposizione: strutturale (σ peer) − MC sull'equity (€m)
+Caso             Configurazione  MC sull'equity (€m)  Strutturale, σ peer (€m)  Differenza totale (€m)    di cui volatilità di partenza (σ peer − σ coerente)    di cui dinamica di leva (σ coerente − GBM)
+   A   Exit fissa, senza leaver                9.000                     8.292                  -0.708                                                  0.514                                        -1.222
+   A Exit incerta, senza leaver                8.910                     8.189                  -0.721                                                  0.504                                        -1.225
+   A     Exit fissa, con leaver                7.693                     7.111                  -0.583                                                  0.444                                        -1.026
+   A   Exit incerta, con leaver                7.508                     6.965                  -0.543                                                  0.434                                        -0.977
+   B   Exit fissa, senza leaver                6.974                     7.033                   0.059                                                  0.162                                        -0.103
+   B Exit incerta, senza leaver                6.692                     6.706                   0.013                                                  0.165                                        -0.151
+   B     Exit fissa, con leaver                6.167                     6.254                   0.087                                                  0.144                                        -0.057
+   B   Exit incerta, con leaver                5.902                     5.981                   0.079                                                  0.147                                        -0.068
+   C   Exit fissa, senza leaver               16.038                    14.577                  -1.461                                                 -0.098                                        -1.362
+   C Exit incerta, senza leaver               15.697                    14.152                  -1.545                                                 -0.098                                        -1.447
+   C     Exit fissa, con leaver               13.897                    12.656                  -1.241                                                 -0.085                                        -1.156
+   C   Exit incerta, con leaver               13.407                    12.257                  -1.150                                                 -0.084                                        -1.066
+
+Dispersione tra modelli con e senza il modello strutturale
+Caso             Configurazione Dispersione senza strutturale Dispersione con strutturale (σ peer)
+   A   Exit fissa, senza leaver                          1.0%                                 7.9%
+   A Exit incerta, senza leaver                          0.2%                                 8.3%
+   A     Exit fissa, con leaver                          1.7%                                 7.7%
+   A   Exit incerta, con leaver                          0.6%                                 7.9%
+   B   Exit fissa, senza leaver                          0.2%                                 1.1%
+   B Exit incerta, senza leaver                          0.1%                                 0.3%
+   B     Exit fissa, con leaver                          0.5%                                 1.9%
+   B   Exit incerta, con leaver                          0.3%                                 1.6%
+   C   Exit fissa, senza leaver                          0.1%                                 9.2%
+   C Exit incerta, senza leaver                          0.0%                                 9.9%
+   C     Exit fissa, con leaver                          0.8%                                 9.0%
+   C   Exit incerta, con leaver                          0.6%                                 9.2%
+
+Leva e volatilità implicita dell'equity (data di valutazione)
+Caso       Data  EV forward (€m)  Debito netto + debt-like (€m) Leva attesa Volatilità equity implicita (strutturale) Volatilità equity (GBM)
+   A 2026-10-21          440.819                        160.894       36.5%                                     41.6%                   39.8%
+   A 2026-12-31          440.004                        161.110       36.6%                                     41.3%                   39.8%
+   A 2027-12-31          433.023                        148.670       34.3%                                     39.7%                   39.8%
+   A 2028-12-31          424.860                        134.440       31.6%                                     37.8%                   39.8%
+   A 2029-12-31          415.526                        118.440       28.5%                                     35.8%                   39.8%
+   A 2030-12-31          406.908                        102.440       25.2%                                     33.9%                   39.8%
+   A 2031-12-31          399.031                         86.440       21.7%                                     32.1%                   39.8%
+   B 2026-10-21        1,196.884                        561.418       46.9%                                     33.1%                   32.3%
+   B 2026-12-31        1,197.809                        561.760       46.9%                                     33.0%                   32.3%
+   B 2027-12-31        1,198.650                        548.590       45.8%                                     32.2%                   32.3%
+   B 2028-12-31        1,198.634                        533.760       44.5%                                     31.2%                   32.3%
+   B 2029-12-31        1,197.603                        517.290       43.2%                                     30.2%                   32.3%
+   B 2030-12-31        1,195.720                        499.180       41.7%                                     29.2%                   32.3%
+   B 2031-12-31        1,193.018                        479.410       40.2%                                     28.1%                   32.3%
+   C 2026-10-21          674.246                        250.000       37.1%                                     52.6%                   52.9%
+   C 2026-12-31          674.848                        250.000       37.0%                                     52.5%                   52.9%
+   C 2027-12-31          663.585                        230.000       34.7%                                     51.1%                   52.9%
+   C 2028-12-31          650.694                        207.500       31.9%                                     49.2%                   52.9%
+   C 2029-12-31          638.642                        185.000       29.0%                                     47.1%                   52.9%
+   C 2030-12-31          627.522                        162.500       25.9%                                     44.8%                   52.9%
+   C 2031-12-31          617.365                        140.000       22.7%                                     42.6%                   52.9%
+
+Test art. 60 all'ingresso
+Caso           Configurazione                         Modello  Valore del MIP (€m) Valore / equity Soglia 1% rispettata  Fair value − prezzo (€m)
+   A Exit fissa, senza leaver         Monte Carlo sull'equity                8.907           3.71%                   Sì                    -0.003
+   A Exit fissa, senza leaver Strutturale (σ attivo dei peer)                7.972           3.32%                   Sì                    -0.938
+   A Exit fissa, senza leaver Strutturale (σ attivo coerente)                7.389           3.08%                   Sì                    -1.521
+   A Exit incerta, con leaver         Monte Carlo sull'equity                7.291           3.04%                   Sì                    -1.619
+   A Exit incerta, con leaver Strutturale (σ attivo dei peer)                6.604           2.75%                   Sì                    -2.306
+   A Exit incerta, con leaver Strutturale (σ attivo coerente)                6.119           2.55%                   Sì                    -2.791
+   B Exit fissa, senza leaver         Monte Carlo sull'equity                7.019           1.25%                   Sì                    -0.001
+   B Exit fissa, senza leaver Strutturale (σ attivo dei peer)                7.014           1.25%                   Sì                    -0.006
+   B Exit fissa, senza leaver Strutturale (σ attivo coerente)                6.826           1.22%                   Sì                    -0.194
+   B Exit incerta, con leaver         Monte Carlo sull'equity                5.847           1.04%                   Sì                    -1.173
+   B Exit incerta, con leaver Strutturale (σ attivo dei peer)                5.933           1.06%                   Sì                    -1.087
+   B Exit incerta, con leaver Strutturale (σ attivo coerente)                5.768           1.03%                   Sì                    -1.252
+   C Exit fissa, senza leaver         Monte Carlo sull'equity               14.391           3.84%                   Sì                     0.001
+   C Exit fissa, senza leaver Strutturale (σ attivo dei peer)               12.821           3.42%                   Sì                    -1.569
+   C Exit fissa, senza leaver Strutturale (σ attivo coerente)               12.807           3.42%                   Sì                    -1.583
+   C Exit incerta, con leaver         Monte Carlo sull'equity               11.837           3.16%                   Sì                    -2.553
+   C Exit incerta, con leaver Strutturale (σ attivo dei peer)               10.614           2.83%                   Sì                    -3.776
+   C Exit incerta, con leaver Strutturale (σ attivo coerente)               10.602           2.83%                   Sì                    -3.788
+
+Risultati salvati in: risultati/05_strutturale.xlsx
+
+==============================================================================
+PASSAGGIO 6 – Exit endogena
+==============================================================================
+
+Valore del MIP con exit endogena alla data di valutazione (€m)
+Caso                             Regola di exit Valore del MIP (€m) Errore standard (€m) Δ% da exit incerta Valore / equity Tempo medio di uscita (anni, misura risk-neutral) Tempo medio di uscita (anni, misura reale)
+   A                     Exit fissa (caso base)               9.000                0.004              +1.0%           3.42%                                             5.197                                           
+   A          Exit incerta (Exit_Distribuzione)               8.910                0.004              +0.0%           3.39%                                             5.198                                           
+   A                           Regola obiettivi              10.452                0.061             +17.3%           3.98%                                             6.570                                      5.986
+   A                     LSM (ottimo del fondo)               5.915                0.091             -33.6%           2.25%                                             4.625                                      4.284
+   A       Regola obiettivi, finestre 2028–2034              10.833                0.055             +21.6%           4.12%                                             7.206                                      6.356
+   A LSM (ottimo del fondo), finestre 2028–2034               4.063                0.081             -54.4%           1.55%                                             3.925                                      3.427
+   B                     Exit fissa (caso base)               6.974                0.007              +4.2%           1.16%                                             5.197                                           
+   B          Exit incerta (Exit_Distribuzione)               6.692                0.008              +0.0%           1.12%                                             5.198                                           
+   B                           Regola obiettivi               8.061                0.029             +20.5%           1.34%                                             6.725                                      5.961
+   B                     LSM (ottimo del fondo)               3.653                0.047             -45.4%           0.61%                                             3.982                                      3.744
+
+Valore del MIP con exit endogena alla data di ingresso (€m)
+Caso                             Regola di exit Valore del MIP (€m) Errore standard (€m) Δ% da exit incerta Valore / equity Tempo medio di uscita (anni, misura risk-neutral) Tempo medio di uscita (anni, misura reale) Fair value − prezzo (€m)
+   A                     Exit fissa (caso base)               8.907                0.003              +0.8%           3.71%                                             6.003                                                              -0.003
+   A          Exit incerta (Exit_Distribuzione)               8.837                0.003              +0.0%           3.68%                                             6.004                                                              -0.073
+   A                           Regola obiettivi              10.137                0.074             +14.7%           4.22%                                             7.440                                      6.834                    1.227
+   A                     LSM (ottimo del fondo)               6.288                0.115             -28.8%           2.62%                                             5.607                                      5.151                   -2.622
+   A       Regola obiettivi, finestre 2028–2034              10.416                0.064             +17.9%           4.34%                                             8.092                                      7.191                    1.506
+   A LSM (ottimo del fondo), finestre 2028–2034               4.743                0.105             -46.3%           1.98%                                             4.812                                      4.295                   -4.167
+   B                     Exit fissa (caso base)               7.019                0.007              +3.1%           1.25%                                             6.003                                                              -0.001
+   B          Exit incerta (Exit_Distribuzione)               6.806                0.008              +0.0%           1.22%                                             6.004                                                              -0.214
+   B                           Regola obiettivi               8.016                0.036             +17.8%           1.43%                                             7.630                                      6.837                    0.996
+   B                     LSM (ottimo del fondo)               4.339                0.054             -36.3%           0.77%                                             4.657                                      4.307                   -2.681
+
+Distribuzione delle date di exit (data di valutazione)
+Caso                            Regola 2028 2029 2030 2031 2032 2033 2034  Tempo medio (anni)
+   A                  Regola obiettivi   0%  10%   5%   4%   2%  80%   0%               6.570
+   A            LSM (ottimo del fondo)   0%  53%  10%   6%   4%  28%   0%               4.625
+   A   Regola obiettivi – misura reale   0%  19%   9%   7%   4%  61%   0%               5.986
+   A                LSM – misura reale   0%  61%  10%   7%   4%  18%   0%               4.284
+   A Exit_Distribuzione (foglio Excel)   0%  10%  20%  40%  20%  10%   0%               5.198
+   B                  Regola obiettivi  12%   7%   6%   4%   2%   1%  68%               6.725
+   B            LSM (ottimo del fondo)  50%  13%   9%   3%   2%   3%  18%               3.982
+   B   Regola obiettivi – misura reale  19%  11%   8%   6%   3%   2%  51%               5.961
+   B                LSM – misura reale  52%  14%  10%   3%   3%   6%  12%               3.744
+   B Exit_Distribuzione (foglio Excel)   5%  10%  20%  30%  20%  10%   5%               5.198
+
+Proventi del fondo: LSM ed exit fisse
+Caso                                     Regola  Valore del MIP (€m)  Proventi netti del fondo, valore attuale (€m)
+   A                            Exit fissa 2029                5.787                                        249.458
+   A                            Exit fissa 2030                7.488                                        248.271
+   A                            Exit fissa 2031                9.012                                        247.228
+   A                            Exit fissa 2032               10.316                                        245.665
+   A                            Exit fissa 2033               11.573                                        244.834
+   A                           Regola obiettivi               10.452                                        246.093
+   A                     LSM (ottimo del fondo)                5.915                                        249.207
+   A       Regola obiettivi, finestre 2028–2034               10.833                                        246.163
+   A LSM (ottimo del fondo), finestre 2028–2034                4.063                                        251.050
+   B                            Exit fissa 2028                3.719                                        573.814
+   B                            Exit fissa 2029                5.010                                        573.334
+   B                            Exit fissa 2030                6.059                                        573.005
+   B                            Exit fissa 2031                6.941                                        572.039
+   B                            Exit fissa 2032                7.452                                        572.415
+   B                            Exit fissa 2033                7.939                                        573.777
+   B                            Exit fissa 2034                8.310                                        574.160
+   B                           Regola obiettivi                8.061                                        572.975
+   B                     LSM (ottimo del fondo)                3.653                                        574.975
+
+Probabilità di exit vicino alle soglie (data di valutazione)
+Caso                 Regola  Finestre         Politica            Soglia P(exit | equity tra 90% e 100% della soglia) P(exit | equity tra 100% e 110% della soglia)  Osservazioni sotto  Osservazioni sopra
+   A       Regola obiettivi 2029–2033 Regola obiettivi            hurdle                                         0.0%                                          0.0%               15402               12390
+   A       Regola obiettivi 2029–2033 Regola obiettivi           ratchet                                         8.3%                                         79.9%                7781                5622
+   A LSM (ottimo del fondo) 2029–2033       Regola LSM            hurdle                                       100.0%                                        100.0%                5444                4388
+   A LSM (ottimo del fondo) 2029–2033       Regola LSM           ratchet                                       100.0%                                        100.0%                3478                2867
+   A       Regola obiettivi 2028–2034 Regola obiettivi            hurdle                                         0.0%                                          0.0%               22992               18438
+   A       Regola obiettivi 2028–2034 Regola obiettivi           ratchet                                         8.3%                                         72.7%               10677                7451
+   A LSM (ottimo del fondo) 2028–2034       Regola LSM            hurdle                                       100.0%                                        100.0%                6578                5274
+   A LSM (ottimo del fondo) 2028–2034       Regola LSM           ratchet                                       100.0%                                         14.9%                3565                2775
+   B       Regola obiettivi 2028–2034 Regola obiettivi            hurdle                                         0.0%                                          0.0%               25668               19214
+   B       Regola obiettivi 2028–2034 Regola obiettivi fine del catch-up                                         0.0%                                         47.1%               18160               12636
+   B LSM (ottimo del fondo) 2028–2034       Regola LSM            hurdle                                       100.0%                                        100.0%                9214                7636
+   B LSM (ottimo del fondo) 2028–2034       Regola LSM fine del catch-up                                        83.6%                                         17.2%                7995                6631
+
+Risultati salvati in: risultati/06_exit_endogena.xlsx
+
+==============================================================================
+PASSAGGIO 7 – Confronto tra modelli
+==============================================================================
+
+Valore del MIP per modello (€m, data di valutazione)
+Caso                                          A     B      C
+Modello                                                     
+OPM semplice (exit fissa, senza leaver)   8.996 6.971 16.038
+Albero binomiale completo                 7.544 5.887 13.490
+Albero trinomiale completo                7.557 5.885 13.489
+Monte Carlo completo                      7.508 5.902 13.407
+Strutturale completo (σ attivo dei peer)  6.965 5.981 12.257
+Strutturale completo (σ attivo coerente)  6.531 5.834 12.341
+PWERM da prassi                           8.625 8.276  8.842
+PWERM da quantili (diagnostico)          13.600 9.657 20.522
+Exit endogena – regola obiettivi         10.452 8.061    NaN
+Exit endogena – LSM (ottimo del fondo)    5.915 3.653    NaN
+
+Dispersione per gruppi di modelli
+Caso                                                              Gruppo di modelli Ipotesi omogenee  Modelli  Minimo (€m)  Massimo (€m) Dispersione                           Modello minimo                         Modello massimo
+   A 1. Option-based completi (alberi, Monte Carlo): stesse ipotesi, motori diversi               Sì        3        7.508         7.557        0.6%                     Monte Carlo completo              Albero trinomiale completo
+   A                           2. + OPM semplice (prassi: exit fissa, senza leaver)               Sì        4        7.508         8.996       19.7%                     Monte Carlo completo OPM semplice (exit fissa, senza leaver)
+   A                                                       3. + modello strutturale               Sì        6        6.531         8.996       32.8% Strutturale completo (σ attivo coerente) OPM semplice (exit fissa, senza leaver)
+   A                                                           4. + PWERM da prassi               No        7        6.531         8.996       32.7% Strutturale completo (σ attivo coerente) OPM semplice (exit fissa, senza leaver)
+   A                                                             5. + exit endogena               No        9        5.915        10.452       60.1%   Exit endogena – LSM (ottimo del fondo)        Exit endogena – regola obiettivi
+   A                                           6. + PWERM da quantili (diagnostico)               No       10        5.915        13.600      101.8%   Exit endogena – LSM (ottimo del fondo)         PWERM da quantili (diagnostico)
+   B 1. Option-based completi (alberi, Monte Carlo): stesse ipotesi, motori diversi               Sì        3        5.885         5.902        0.3%               Albero trinomiale completo                    Monte Carlo completo
+   B                           2. + OPM semplice (prassi: exit fissa, senza leaver)               Sì        4        5.885         6.971       18.4%               Albero trinomiale completo OPM semplice (exit fissa, senza leaver)
+   B                                                       3. + modello strutturale               Sì        6        5.834         6.971       19.3% Strutturale completo (σ attivo coerente) OPM semplice (exit fissa, senza leaver)
+   B                                                           4. + PWERM da prassi               No        7        5.834         8.276       41.4% Strutturale completo (σ attivo coerente)                         PWERM da prassi
+   B                                                             5. + exit endogena               No        9        3.653         8.276       78.3%   Exit endogena – LSM (ottimo del fondo)                         PWERM da prassi
+   B                                           6. + PWERM da quantili (diagnostico)               No       10        3.653         9.657      101.0%   Exit endogena – LSM (ottimo del fondo)         PWERM da quantili (diagnostico)
+   C 1. Option-based completi (alberi, Monte Carlo): stesse ipotesi, motori diversi               Sì        3       13.407        13.490        0.6%                     Monte Carlo completo               Albero binomiale completo
+   C                           2. + OPM semplice (prassi: exit fissa, senza leaver)               Sì        4       13.407        16.038       19.5%                     Monte Carlo completo OPM semplice (exit fissa, senza leaver)
+   C                                                       3. + modello strutturale               Sì        6       12.257        16.038       28.1% Strutturale completo (σ attivo dei peer) OPM semplice (exit fissa, senza leaver)
+   C                                                           4. + PWERM da prassi               No        7        8.842        16.038       53.7%                          PWERM da prassi OPM semplice (exit fissa, senza leaver)
+   C                                                             5. + exit endogena               No        7        8.842        16.038       53.7%                          PWERM da prassi OPM semplice (exit fissa, senza leaver)
+   C                                           6. + PWERM da quantili (diagnostico)               No        8        8.842        20.522       86.8%                          PWERM da prassi         PWERM da quantili (diagnostico)
+
+Fonti di divergenza (data di valutazione)
+Caso  Rango                                                        Scelta di modello          Confronto Effetto sul valore
+   A      1                            PWERM da quantili (diagnostico) invece di OPM         exit fissa             +51.2%
+   A      2                          Exit endogena: LSM invece di Exit_Distribuzione       senza leaver             -33.6%
+   A      3             Exit endogena: regola obiettivi invece di Exit_Distribuzione       senza leaver             +17.3%
+   A      4          Modello completo (exit incerta e leaver) invece di OPM semplice Monte Carlo vs OPM             -16.5%
+   A      5                               Leaver (valore economico invece di IFRS 2)        Monte Carlo             -14.5%
+   A      6                       Sola dinamica di leva (strutturale con σ coerente)   modelli completi             -13.0%
+   A      7      Modello strutturale con σ attivo dei peer invece di GBM sull'equity   modelli completi              -7.2%
+   A      8                                            PWERM da prassi invece di OPM         exit fissa              -4.1%
+   A      9                                        Exit incerta invece di exit fissa        Monte Carlo              -1.0%
+   A     10 Motore numerico (OPM, alberi 200 passi, Monte Carlo) a parità di ipotesi         intervallo              ±1.0%
+   B      1                          Exit endogena: LSM invece di Exit_Distribuzione       senza leaver             -45.4%
+   B      2                            PWERM da quantili (diagnostico) invece di OPM         exit fissa             +38.5%
+   B      3             Exit endogena: regola obiettivi invece di Exit_Distribuzione       senza leaver             +20.5%
+   B      4                                            PWERM da prassi invece di OPM         exit fissa             +18.7%
+   B      5          Modello completo (exit incerta e leaver) invece di OPM semplice Monte Carlo vs OPM             -15.3%
+   B      6                               Leaver (valore economico invece di IFRS 2)        Monte Carlo             -11.6%
+   B      7                                        Exit incerta invece di exit fissa        Monte Carlo              -4.0%
+   B      8      Modello strutturale con σ attivo dei peer invece di GBM sull'equity   modelli completi              +1.3%
+   B      9                       Sola dinamica di leva (strutturale con σ coerente)   modelli completi              -1.2%
+   B     10 Motore numerico (OPM, alberi 200 passi, Monte Carlo) a parità di ipotesi         intervallo              ±0.2%
+   C      1                                            PWERM da prassi invece di OPM         exit fissa             -44.9%
+   C      2                            PWERM da quantili (diagnostico) invece di OPM         exit fissa             +28.0%
+   C      3          Modello completo (exit incerta e leaver) invece di OPM semplice Monte Carlo vs OPM             -16.4%
+   C      4                               Leaver (valore economico invece di IFRS 2)        Monte Carlo             -13.3%
+   C      5      Modello strutturale con σ attivo dei peer invece di GBM sull'equity   modelli completi              -8.6%
+   C      6                       Sola dinamica di leva (strutturale con σ coerente)   modelli completi              -7.9%
+   C      7                                        Exit incerta invece di exit fissa        Monte Carlo              -2.1%
+   C      8 Motore numerico (OPM, alberi 200 passi, Monte Carlo) a parità di ipotesi         intervallo              ±0.1%
+
+Art. 60: fair value / equity all'ingresso per modello
+Caso                                  Modello  Fair value all'ingresso (€m) Fair value / equity Soglia 1% rispettata  Fair value − prezzo (€m)
+   A  OPM semplice (exit fissa, senza leaver)                         8.906               3.71%                   Sì                    -0.004
+   A                Albero binomiale completo                         7.246               3.02%                   Sì                    -1.664
+   A               Albero trinomiale completo                         7.263               3.03%                   Sì                    -1.647
+   A                     Monte Carlo completo                         7.291               3.04%                   Sì                    -1.619
+   A Strutturale completo (σ attivo dei peer)                         6.604               2.75%                   Sì                    -2.306
+   A Strutturale completo (σ attivo coerente)                         6.119               2.55%                   Sì                    -2.791
+   A                          PWERM da prassi                         7.953               3.31%                   Sì                    -0.957
+   A          PWERM da quantili (diagnostico)                        13.849               5.77%                   Sì                     4.939
+   A         Exit endogena – regola obiettivi                        10.137               4.22%                   Sì                     1.227
+   A   Exit endogena – LSM (ottimo del fondo)                         6.288               2.62%                   Sì                    -2.622
+   B  OPM semplice (exit fissa, senza leaver)                         7.024               1.25%                   Sì                     0.004
+   B                Albero binomiale completo                         5.849               1.04%                   Sì                    -1.171
+   B               Albero trinomiale completo                         5.848               1.04%                   Sì                    -1.172
+   B                     Monte Carlo completo                         5.847               1.04%                   Sì                    -1.173
+   B Strutturale completo (σ attivo dei peer)                         5.933               1.06%                   Sì                    -1.087
+   B Strutturale completo (σ attivo coerente)                         5.768               1.03%                   Sì                    -1.252
+   B                          PWERM da prassi                         7.682               1.37%                   Sì                     0.662
+   B          PWERM da quantili (diagnostico)                        10.034               1.79%                   Sì                     3.014
+   B         Exit endogena – regola obiettivi                         8.016               1.43%                   Sì                     0.996
+   B   Exit endogena – LSM (ottimo del fondo)                         4.339               0.77%                   No                    -2.681
+   C  OPM semplice (exit fissa, senza leaver)                        14.391               3.84%                   Sì                     0.001
+   C                Albero binomiale completo                        11.768               3.14%                   Sì                    -2.622
+   C               Albero trinomiale completo                        11.768               3.14%                   Sì                    -2.622
+   C                     Monte Carlo completo                        11.837               3.16%                   Sì                    -2.553
+   C Strutturale completo (σ attivo dei peer)                        10.614               2.83%                   Sì                    -3.776
+   C Strutturale completo (σ attivo coerente)                        10.602               2.83%                   Sì                    -3.788
+   C                          PWERM da prassi                         8.201               2.19%                   Sì                    -6.189
+   C          PWERM da quantili (diagnostico)                        19.359               5.16%                   Sì                     4.969
+
+Art. 60: sintesi per caso
+Caso  Modelli  Modelli sopra l'1% Minimo Massimo                           Modello minimo
+   A       10                  10  2.55%   5.77% Strutturale completo (σ attivo coerente)
+   B       10                   9  0.77%   1.79%   Exit endogena – LSM (ottimo del fondo)
+   C        8                   8  2.19%   5.16%                          PWERM da prassi
+
+Caso A: componente ratchet per modello
+          Configurazione                         Modello Componente ratchet (€m)
+Exit fissa, senza leaver             OPM (Black-Scholes)                   2.735
+Exit fissa, senza leaver                Albero binomiale                   2.659
+Exit fissa, senza leaver               Albero trinomiale                   2.659
+Exit fissa, senza leaver                     Monte Carlo                   2.738
+Exit fissa, senza leaver            Strutturale (σ peer)                   2.432
+Exit fissa, senza leaver Dispersione modelli sull'equity                    3.0%
+Exit fissa, senza leaver  Dispersione con lo strutturale                   11.5%
+Exit incerta, con leaver                Albero binomiale                   2.241
+Exit incerta, con leaver               Albero trinomiale                   2.254
+Exit incerta, con leaver                     Monte Carlo                   2.225
+Exit incerta, con leaver            Strutturale (σ peer)                   1.973
+Exit incerta, con leaver Dispersione modelli sull'equity                    1.3%
+Exit incerta, con leaver  Dispersione con lo strutturale                   12.6%
+
+Risultati salvati in: risultati/07_confronto_modelli.xlsx
+
+==============================================================================
+PASSAGGIO 8 – Sensitivity
+==============================================================================
+
+Parametri di stima, intervallo plausibile – Monte Carlo completo (data di valutazione)
+Caso                            Parametro Effetto minimo           Livello minimo Effetto massimo          Livello massimo Ampiezza (max − min) Effetto per unità                            Unità
+   A Probabilità annua di uscita (leaver)         -28.5%                    15.0%           +8.8%                     2.5%                37.2%             -3.0% per 1 punto di probabilità annua
+   A                    Volatilità equity         -16.2%                      -5%          +15.8%                      +5%                31.9%             +3.2%        per 1 punto di volatilità
+   A                         Data di exit         -14.5%                -1.0 anni          +13.3%                +1.0 anni                27.8%            +13.9%               per 1 anno di exit
+   A                                 DLOM         -20.0%                      20%           +0.0%                       0%                20.0%            -10.0%             per 10 punti di DLOM
+   A   Finestra di stima della volatilità         -18.3%                   2 anni           +0.0%                        T                18.3%                                                   
+   A                            Risk-free          -2.7%                    -0.5%           +2.7%                    +0.5%                 5.3%             +5.3%         per 1 punto di risk-free
+   A                  Definizione di leva          +0.0% Solo debito netto (base)           +2.4% Debito netto + debt-like                 2.4%                                                   
+   B Probabilità annua di uscita (leaver)         -29.9%                    15.0%           +5.0%                     2.5%                34.9%             -2.8% per 1 punto di probabilità annua
+   B                    Volatilità equity         -14.6%                      -5%          +13.7%                      +5%                28.3%             +2.8%        per 1 punto di volatilità
+   B                                 DLOM         -20.0%                      20%           +0.0%                       0%                20.0%            -10.0%             per 10 punti di DLOM
+   B                         Data di exit         -11.8%                -1.0 anni           +7.2%                +1.0 anni                19.0%             +9.5%               per 1 anno di exit
+   B   Finestra di stima della volatilità          -2.9%                   2 anni          +11.0%                   1 anno                13.9%                                                   
+   B                            Risk-free          -3.1%                    -0.5%           +3.1%                    +0.5%                 6.1%             +6.1%         per 1 punto di risk-free
+   B                  Definizione di leva          +0.0% Solo debito netto (base)           +0.6% Debito netto + debt-like                 0.6%                                                   
+   C Probabilità annua di uscita (leaver)         -25.8%                    15.0%           +7.8%                     2.5%                33.6%             -2.7% per 1 punto di probabilità annua
+   C                    Volatilità equity         -10.9%                      -5%          +10.5%                      +5%                21.4%             +2.1%        per 1 punto di volatilità
+   C                                 DLOM         -20.0%                      20%           +0.0%                       0%                20.0%            -10.0%             per 10 punti di DLOM
+   C   Finestra di stima della volatilità          +0.0%                        T          +18.4%                   1 anno                18.4%                                                   
+   C                         Data di exit          -8.9%                -1.0 anni           +7.2%                +1.0 anni                16.1%             +8.0%               per 1 anno di exit
+   C                            Risk-free          -1.7%                    -0.5%           +1.7%                    +0.5%                 3.4%             +3.4%         per 1 punto di risk-free
+   C                  Definizione di leva          +0.0% Solo debito netto (base)           +0.7% Debito netto + debt-like                 0.7%                                                   
+
+Parametri di stima, intervallo plausibile – OPM semplice (data di valutazione)
+Caso                          Parametro Effetto minimo           Livello minimo Effetto massimo          Livello massimo Ampiezza (max − min) Effetto per unità                     Unità
+   A                       Data di exit         -16.7%                -1.0 anni          +15.2%                +1.0 anni                31.9%            +15.9%        per 1 anno di exit
+   A                  Volatilità equity         -16.1%                      -5%          +15.7%                      +5%                31.7%             +3.2% per 1 punto di volatilità
+   A                               DLOM         -20.0%                      20%           +0.0%                       0%                20.0%            -10.0%      per 10 punti di DLOM
+   A Finestra di stima della volatilità         -18.2%                   2 anni           +0.0%                        T                18.2%                                            
+   A                          Risk-free          -2.7%                    -0.5%           +2.7%                    +0.5%                 5.4%             +5.4%  per 1 punto di risk-free
+   A                Definizione di leva          +0.0% Solo debito netto (base)           +2.4% Debito netto + debt-like                 2.4%                                            
+   B                  Volatilità equity         -13.6%                      -5%          +12.8%                      +5%                26.4%             +2.6% per 1 punto di volatilità
+   B                       Data di exit         -13.1%                -1.0 anni           +7.0%                +1.0 anni                20.1%            +10.1%        per 1 anno di exit
+   B                               DLOM         -20.0%                      20%           +0.0%                       0%                20.0%            -10.0%      per 10 punti di DLOM
+   B Finestra di stima della volatilità          -2.7%                   2 anni          +10.3%                   1 anno                13.1%                                            
+   B                          Risk-free          -3.0%                    -0.5%           +3.0%                    +0.5%                 6.0%             +6.0%  per 1 punto di risk-free
+   B                Definizione di leva          +0.0% Solo debito netto (base)           +0.6% Debito netto + debt-like                 0.6%                                            
+   C                  Volatilità equity         -10.7%                      -5%          +10.4%                      +5%                21.1%             +2.1% per 1 punto di volatilità
+   C                               DLOM         -20.0%                      20%           +0.0%                       0%                20.0%            -10.0%      per 10 punti di DLOM
+   C Finestra di stima della volatilità          +0.0%                        T          +18.2%                   1 anno                18.2%                                            
+   C                       Data di exit         -10.6%                -1.0 anni           +6.8%                +1.0 anni                17.3%             +8.7%        per 1 anno di exit
+   C                          Risk-free          -1.7%                    -0.5%           +1.7%                    +0.5%                 3.4%             +3.4%  per 1 punto di risk-free
+   C                Definizione di leva          +0.0% Solo debito netto (base)           +0.7% Debito netto + debt-like                 0.7%                                            
+
+Parametri di stima, intervallo plausibile – PWERM da prassi (data di valutazione)
+Caso           Parametro Effetto minimo    Livello minimo Effetto massimo  Livello massimo Ampiezza (max − min) Effetto per unità                              Unità
+   A                DLOM         -20.0%               20%           +0.0%               0%                20.0%            -10.0%               per 10 punti di DLOM
+   A Premio dimensionale          +0.0% Decile 10 (4.37%)          +14.3% Decile 9 (1.68%)                14.3%             -5.3% per 1 punto di premio dimensionale
+   A        Ke del PWERM          -4.8%               +1%           +5.0%              -1%                 9.8%             -4.9%                  per 1 punto di Ke
+   A Equity risk premium          -2.5%              6.0%           +2.6%             5.0%                 5.1%             -5.1%                 per 1 punto di ERP
+   A                Beta          -1.3%  Adjusted (Blume)           +0.0%       Raw (base)                 1.3%                                                     
+   B                DLOM         -20.0%               20%           +0.0%               0%                20.0%            -10.0%               per 10 punti di DLOM
+   B Premio dimensionale         -12.4% Decile 10 (4.37%)           +0.0% Decile 9 (1.68%)                12.4%             -4.6% per 1 punto di premio dimensionale
+   B        Ke del PWERM          -4.8%               +1%           +5.1%              -1%                 9.9%             -5.0%                  per 1 punto di Ke
+   B                Beta          -4.9%  Adjusted (Blume)           +0.0%       Raw (base)                 4.9%                                                     
+   B Equity risk premium          -2.1%              6.0%           +2.1%             5.0%                 4.2%             -4.2%                 per 1 punto di ERP
+   C                DLOM         -20.0%               20%           +0.0%               0%                20.0%            -10.0%               per 10 punti di DLOM
+   C Premio dimensionale         -12.0% Decile 10 (4.37%)           +0.0% Decile 9 (1.68%)                12.0%             -4.5% per 1 punto di premio dimensionale
+   C        Ke del PWERM          -4.7%               +1%           +5.0%              -1%                 9.7%             -4.8%                  per 1 punto di Ke
+   C Equity risk premium          -3.0%              6.0%           +3.1%             5.0%                 6.1%             -6.1%                 per 1 punto di ERP
+   C                Beta          +0.0%        Raw (base)           +1.0% Adjusted (Blume)                 1.0%                                                     
+
+Intervalli plausibili
+                           Parametro                                                                                                                       Intervallo
+Probabilità annua di uscita (leaver)                                    2,5–15% annuo: dall'ipotesi prudente al turnover osservato sui CEO; 20% è un valore di stress
+                   Volatilità equity ±5 punti: ordine delle differenze prodotte dalle finestre di stima (da −5,6 a +8,9 punti sulla volatilità relevered) e dal panel
+                        Data di exit                                                       ±1 anno attorno alla data del business plan; ±2 anni è un valore di stress
+                                DLOM                                                                                              0–20%: il 30% è un valore di stress
+  Finestra di stima della volatilità                                                                                                               1 anno, 2 anni o T
+                           Risk-free                                                                                    ±0,5 punti (es. swap contro Bund interpolato)
+                 Definizione di leva                                                                                                con o senza debt-like (regola 29)
+                 Premio dimensionale                                                                                                 tra decile 9 e decile 10 (Kroll)
+                        Ke del PWERM                                                                                                                         ±1 punto
+                 Equity risk premium                                                                                                        intervallo Kroll 5,0–6,0%
+                                Beta                                                                                                           raw o adjusted (Blume)
+
+Termini contrattuali e struttura del deal – Monte Carlo completo
+Caso                             Parametro      Tipo Effetto minimo Livello minimo Effetto massimo Livello massimo Ampiezza (max − min)
+   A            Soglie di hurdle e ratchet contratto         -19.9%          × 1.2          +27.6%           × 0.8                47.6%
+   A                  Quote del management contratto         -19.8%          × 0.8          +19.8%           × 1.2                39.6%
+   A                                  Leva struttura         -11.3%           -15%          +10.0%            +15%                21.4%
+   B                  Quote del management contratto         -19.7%          × 0.8          +19.7%           × 1.2                39.4%
+   B            Soglie di hurdle e ratchet contratto         -18.4%          × 1.2          +15.5%           × 0.8                33.9%
+   B                                  Leva struttura          -3.2%           -15%           +0.3%             +5%                 3.5%
+   C Quota del guadagno oltre l'hurdle (C) contratto         -39.5%             6%          +39.4%             14%                79.0%
+   C                  Quote del management contratto         -19.8%          × 0.8          +19.7%           × 1.2                39.5%
+   C            Soglie di hurdle e ratchet contratto         -14.1%          × 1.2          +18.3%           × 0.8                32.5%
+   C                                  Leva struttura          -6.7%           -15%           +4.0%            +15%                10.7%
+
+Parameter risk e model risk (data di valutazione)
+Caso Model risk: OPM semplice vs modelli completi (gruppo 2) Model risk: + strutturale (gruppo 3)     Parametro di stima più influente Sua ampiezza (intervallo plausibile)  Parametri di stima con ampiezza > gruppo 2  Parametri di stima con ampiezza > gruppo 3  Parametri di stima valutati
+   A                                                   19.7%                                32.8% Probabilità annua di uscita (leaver)                                37.2%                                           4                                           1                            7
+   B                                                   18.4%                                19.3% Probabilità annua di uscita (leaver)                                34.9%                                           4                                           3                            7
+   C                                                   19.5%                                28.1% Probabilità annua di uscita (leaver)                                33.6%                                           3                                           1                            7
+
+Classifica: scelte di modello e parametri di stima (prime 10 per caso)
+Caso  Rango               Tipo                                                            Voce Scostamento dal caso base                                                Dettaglio
+   A      1            Modello                   PWERM da quantili (diagnostico) invece di OPM                     51.2%                                      +51.2% (exit fissa)
+   A      2            Modello                 Exit endogena: LSM invece di Exit_Distribuzione                     33.6%                                    -33.6% (senza leaver)
+   A      3 Parametro di stima     Probabilità annua di uscita (leaver) [Monte Carlo completo]                     28.5%                         da -28.5% (15.0%) a +8.8% (2.5%)
+   A      4 Parametro di stima                                     DLOM [Monte Carlo completo]                     20.0%                             da -20.0% (20%) a +0.0% (0%)
+   A      5 Parametro di stima       Finestra di stima della volatilità [Monte Carlo completo]                     18.3%                           da -18.3% (2 anni) a +0.0% (T)
+   A      6            Modello    Exit endogena: regola obiettivi invece di Exit_Distribuzione                     17.3%                                    +17.3% (senza leaver)
+   A      7            Modello Modello completo (exit incerta e leaver) invece di OPM semplice                     16.5%                              -16.5% (Monte Carlo vs OPM)
+   A      8 Parametro di stima                        Volatilità equity [Monte Carlo completo]                     16.2%                           da -16.2% (-5%) a +15.8% (+5%)
+   A      9            Modello                      Leaver (valore economico invece di IFRS 2)                     14.5%                                     -14.5% (Monte Carlo)
+   A     10 Parametro di stima                             Data di exit [Monte Carlo completo]                     14.5%               da -14.5% (-1.0 anni) a +13.3% (+1.0 anni)
+   B      1            Modello                 Exit endogena: LSM invece di Exit_Distribuzione                     45.4%                                    -45.4% (senza leaver)
+   B      2            Modello                   PWERM da quantili (diagnostico) invece di OPM                     38.5%                                      +38.5% (exit fissa)
+   B      3 Parametro di stima     Probabilità annua di uscita (leaver) [Monte Carlo completo]                     29.9%                         da -29.9% (15.0%) a +5.0% (2.5%)
+   B      4            Modello    Exit endogena: regola obiettivi invece di Exit_Distribuzione                     20.5%                                    +20.5% (senza leaver)
+   B      5 Parametro di stima                                     DLOM [Monte Carlo completo]                     20.0%                             da -20.0% (20%) a +0.0% (0%)
+   B      6            Modello                                   PWERM da prassi invece di OPM                     18.7%                                      +18.7% (exit fissa)
+   B      7            Modello Modello completo (exit incerta e leaver) invece di OPM semplice                     15.3%                              -15.3% (Monte Carlo vs OPM)
+   B      8 Parametro di stima                        Volatilità equity [Monte Carlo completo]                     14.6%                           da -14.6% (-5%) a +13.7% (+5%)
+   B      9 Parametro di stima                           Premio dimensionale [PWERM da prassi]                     12.4% da -12.4% (Decile 10 (4.37%)) a +0.0% (Decile 9 (1.68%))
+   B     10 Parametro di stima                             Data di exit [Monte Carlo completo]                     11.8%                da -11.8% (-1.0 anni) a +7.2% (+1.0 anni)
+   C      1            Modello                                   PWERM da prassi invece di OPM                     44.9%                                      -44.9% (exit fissa)
+   C      2            Modello                   PWERM da quantili (diagnostico) invece di OPM                     28.0%                                      +28.0% (exit fissa)
+   C      3 Parametro di stima     Probabilità annua di uscita (leaver) [Monte Carlo completo]                     25.8%                         da -25.8% (15.0%) a +7.8% (2.5%)
+   C      4 Parametro di stima                                     DLOM [Monte Carlo completo]                     20.0%                             da -20.0% (20%) a +0.0% (0%)
+   C      5 Parametro di stima       Finestra di stima della volatilità [Monte Carlo completo]                     18.4%                           da +0.0% (T) a +18.4% (1 anno)
+   C      6            Modello Modello completo (exit incerta e leaver) invece di OPM semplice                     16.4%                              -16.4% (Monte Carlo vs OPM)
+   C      7            Modello                      Leaver (valore economico invece di IFRS 2)                     13.3%                                     -13.3% (Monte Carlo)
+   C      8 Parametro di stima                           Premio dimensionale [PWERM da prassi]                     12.0% da -12.0% (Decile 10 (4.37%)) a +0.0% (Decile 9 (1.68%))
+   C      9 Parametro di stima                        Volatilità equity [Monte Carlo completo]                     10.9%                           da -10.9% (-5%) a +10.5% (+5%)
+   C     10 Parametro di stima                             Data di exit [Monte Carlo completo]                      8.9%                 da -8.9% (-1.0 anni) a +7.2% (+1.0 anni)
+
+Art. 60 all'ingresso: sensitivity
+Caso              Modello                                     Prove Caso base Minimo                                  Prova del minimo  Prove sotto l'1%  Prove valutate                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     Quali prove sono sotto l'1% Denominatore alternativo (senza shareholder loan), caso base
+   A Monte Carlo completo Parametri di stima, intervallo plausibile     3.04%  2.02%       Probabilità annua di uscita (leaver): 15.0%                 0              17                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        8.10%
+   A Monte Carlo completo      Tutti i parametri, griglia di stress     3.04%  1.68%       Probabilità annua di uscita (leaver): 20.0%                 0              40                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        8.10%
+   A Monte Carlo completo                 Convenzione di volatilità     3.04%  2.16% Convenzione di volatilità: Peer, senza relevering                 0               1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        8.10%
+   A         OPM semplice Parametri di stima, intervallo plausibile     3.71%  2.97%                                         DLOM: 20%                 0              12                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        9.90%
+   A         OPM semplice      Tutti i parametri, griglia di stress     3.71%  2.52%                           Volatilità equity: -10%                 0              33                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        9.90%
+   A         OPM semplice                 Convenzione di volatilità     3.71%  2.65% Convenzione di volatilità: Peer, senza relevering                 0               1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        9.90%
+   B Monte Carlo completo Parametri di stima, intervallo plausibile     1.04%  0.69%       Probabilità annua di uscita (leaver): 15.0%                10              18                                                                                                                                                                                                                                                                                                Volatilità equity: -5%; Data di exit: -1.0 anni; Probabilità annua di uscita (leaver): 7.5%; Probabilità annua di uscita (leaver): 10.0%; Probabilità annua di uscita (leaver): 12.5%; Probabilità annua di uscita (leaver): 15.0%; DLOM: 10%; DLOM: 20%; Finestra di stima della volatilità: 1 anno; Finestra di stima della volatilità: 2 anni                                                        2.55%
+   B Monte Carlo completo      Tutti i parametri, griglia di stress     1.04%  0.57%       Probabilità annua di uscita (leaver): 20.0%                22              41 Volatilità equity: -10%; Volatilità equity: -5%; Data di exit: -2.0 anni; Data di exit: -1.0 anni; Probabilità annua di uscita (leaver): 7.5%; Probabilità annua di uscita (leaver): 10.0%; Probabilità annua di uscita (leaver): 12.5%; Probabilità annua di uscita (leaver): 15.0%; Probabilità annua di uscita (leaver): 20.0%; DLOM: 10%; DLOM: 20%; DLOM: 30%; Soglie di hurdle e ratchet: × 1.1; Soglie di hurdle e ratchet: × 1.2; Leva: -15%; Leva: -10%; Leva: -5%; Quote del management: × 0.8; Quote del management: × 0.9; Risk-free: -1.0%; Finestra di stima della volatilità: 1 anno; Finestra di stima della volatilità: 2 anni                                                        2.55%
+   B Monte Carlo completo                 Convenzione di volatilità     1.04%  0.69% Convenzione di volatilità: Peer, senza relevering                 1               1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Convenzione di volatilità: Peer, senza relevering                                                        2.55%
+   B         OPM semplice Parametri di stima, intervallo plausibile     1.25%  0.99%        Finestra di stima della volatilità: 2 anni                 1              12                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      Finestra di stima della volatilità: 2 anni                                                        3.07%
+   B         OPM semplice      Tutti i parametri, griglia di stress     1.25%  0.88%                                         DLOM: 30%                 5              33                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             Volatilità equity: -10%; Data di exit: -2.0 anni; DLOM: 30%; Leva: -15%; Finestra di stima della volatilità: 2 anni                                                        3.07%
+   B         OPM semplice                 Convenzione di volatilità     1.25%  0.85% Convenzione di volatilità: Peer, senza relevering                 1               1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Convenzione di volatilità: Peer, senza relevering                                                        3.07%
+   C Monte Carlo completo Parametri di stima, intervallo plausibile     3.16%  2.17%       Probabilità annua di uscita (leaver): 15.0%                 0              17                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3.16%
+   C Monte Carlo completo      Tutti i parametri, griglia di stress     3.16%  1.84%       Probabilità annua di uscita (leaver): 20.0%                 0              44                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3.16%
+   C Monte Carlo completo                 Convenzione di volatilità     3.16%  1.63% Convenzione di volatilità: Peer, senza relevering                 0               1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3.16%
+   C         OPM semplice Parametri di stima, intervallo plausibile     3.84%  3.07%                                         DLOM: 20%                 0              12                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3.84%
+   C         OPM semplice      Tutti i parametri, griglia di stress     3.84%  2.30%         Quota del guadagno oltre l'hurdle (C): 6%                 0              37                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3.84%
+   C         OPM semplice                 Convenzione di volatilità     3.84%  2.02% Convenzione di volatilità: Peer, senza relevering                 0               1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3.84%
+
+Convenzione di volatilità: peer senza relevering invece di relevered
+Caso              Modello Volatilità relevered – valutazione Volatilità dei peer senza relevering – valutazione  Valore relevered (€m)  Valore senza relevering (€m) Δ% dal caso base Fair value / equity all'ingresso – relevered Fair value / equity all'ingresso – senza relevering Soglia 1% rispettata – senza relevering
+   A         OPM semplice                              39.8%                                              32.6%                  8.996                         6.914           -23.1%                                        3.71%                                               2.65%                                      Sì
+   A Monte Carlo completo                              39.8%                                              32.6%                  7.508                         5.757           -23.3%                                        3.04%                                               2.16%                                      Sì
+   B         OPM semplice                              32.3%                                              23.0%                  6.971                         5.152           -26.1%                                        1.25%                                               0.85%                                      No
+   B Monte Carlo completo                              32.3%                                              23.0%                  5.902                         4.239           -28.2%                                        1.04%                                               0.69%                                      No
+   C         OPM semplice                              52.9%                                              33.8%                 16.038                         9.246           -42.3%                                        3.84%                                               2.02%                                      Sì
+   C Monte Carlo completo                              52.9%                                              33.8%                 13.407                         7.639           -43.0%                                        3.16%                                               1.63%                                      Sì
+
+Impostazioni numeriche (data di valutazione)
+Caso                              Impostazione  Minimo (€m)  Massimo (€m)  Riferimento esatto (€m) Ampiezza / riferimento
+   A               Passi dell'albero binomiale        8.830         9.170                    8.996                   3.8%
+   A Simulazioni Monte Carlo (senza controllo)        8.937         9.329                    8.996                   4.4%
+   A                        Quantili del PWERM       13.600        14.208                   14.132                   4.3%
+   B               Passi dell'albero binomiale        6.958         7.124                    6.971                   2.4%
+   B Simulazioni Monte Carlo (senza controllo)        6.939         7.113                    6.971                   2.5%
+   B                        Quantili del PWERM        9.072         9.687                    9.686                   6.3%
+   C               Passi dell'albero binomiale       16.025        16.131                   16.038                   0.7%
+   C Simulazioni Monte Carlo (senza controllo)       15.917        16.815                   16.038                   5.6%
+   C                        Quantili del PWERM       20.522        20.747                   20.747                   1.1%
+
+Varianti V1-V8 (data di valutazione)
+Caso  Variante  OPM, exit fissa (€m)  OPM, exit incerta (€m)  Monte Carlo completo (€m) Δ% OPM, exit fissa Δ% OPM, exit incerta Δ% Monte Carlo completo
+   A Caso base                 8.996                   8.912                      7.508              +0.0%                +0.0%                   +0.0%
+   A        V5                 8.996                   8.912                      7.507              -0.0%                -0.0%                   -0.0%
+   A        V6                 8.091                   8.026                      6.755             -10.1%                -9.9%                  -10.0%
+   B Caso base                 6.971                   6.684                      5.902              +0.0%                +0.0%                   +0.0%
+   B        V1                 6.971                   6.887                      6.256              +0.0%                +3.0%                   +6.0%
+   B        V2                 6.971                   6.849                      6.030              +0.0%                +2.5%                   +2.2%
+   B        V7                 4.962                   4.646                      4.083             -28.8%               -30.5%                  -30.8%
+   B        V8                 6.607                   6.186                      5.416              -5.2%                -7.5%                   -8.2%
+   C Caso base                16.038                  15.697                     13.407              +0.0%                +0.0%                   +0.0%
+   C        V3                16.038                  15.942                     14.011              +0.0%                +1.6%                   +4.5%
+   C        V4                16.038                  15.880                     13.452              +0.0%                +1.2%                   +0.3%
+
+Risultati salvati in: risultati/08_sensitivity.xlsx
+
+==============================================================================
+PASSAGGIO 9 – Tasso di sconto del PWERM e mappa condizionata
+==============================================================================
+
+Elasticità del MIP e tasso di sconto
+       Data Caso  Valore OPM (€m)  Delta (Δ)  Elasticità Ω = Δ·E/V Ke (equity) Risk-free annuo Rendimento richiesto dal MIP (CAPM con Ω) Tasso implicito (distribuzione del modello) Tasso implicito (scenari di prassi)  PWERM da prassi al Ke (€m)
+valutazione    A            8.996      0.071                 2.084       13.8%            3.5%                                     24.9%                                       24.1%                               12.9%                       8.625
+valutazione    B            6.971      0.026                 2.204       10.0%            3.5%                                     17.8%                                       17.1%                               13.5%                       8.276
+valutazione    C           16.038      0.066                 1.684       12.3%            3.5%                                     18.3%                                       18.0%                                0.7%                       8.842
+   ingresso    A            8.906      0.071                 1.917       13.6%            2.6%                                     23.7%                                       22.8%                               11.6%                       7.953
+   ingresso    B            7.024      0.025                 1.976        9.7%            2.6%                                     16.6%                                       16.0%                               11.3%                       7.682
+   ingresso    C           14.391      0.064                 1.678       12.1%            2.6%                                     18.5%                                       18.1%                                2.5%                       8.201
+
+PWERM al Ke e al rendimento richiesto dal MIP (€m)
+       Data Caso  Valore OPM (€m)  PWERM da quantili (limite) al Ke (€m)  PWERM da quantili (limite) al rendimento del MIP (€m)  PWERM da prassi al Ke (€m)  PWERM da prassi al rendimento del MIP (€m)
+valutazione    A            8.996                                 14.133                                                  8.689                       8.625                                       5.139
+valutazione    B            6.971                                  9.686                                                  6.783                       8.276                                       5.698
+valutazione    C           16.038                                 20.747                                                 15.810                       8.842                                       6.668
+   ingresso    A            8.906                                 14.182                                                  8.514                       7.953                                       4.641
+   ingresso    B            7.024                                  9.813                                                  6.806                       7.682                                       5.249
+   ingresso    C           14.391                                 19.641                                                 14.058                       8.201                                       5.806
+
+Mappa condizionata: sintesi
+Caso Dispersione  Base Volatilità −10 punti Volatilità +10 punti Soglie × 0,8 (più vicine) Soglie × 1,2 (più lontane) Minimo sulla mappa Massimo sulla mappa Exit −1 anno Exit +1 anno
+   A    gruppo 2 18.0%                18.3%                17.9%                     16.1%                      19.3%              16.1%               19.7%        15.4%        19.6%
+   A    gruppo 3 27.1%                29.2%                26.3%                     19.1%                      35.0%              19.1%               38.9%                          
+   B    gruppo 2 16.6%                19.8%                15.4%                     12.9%                      21.1%              12.9%               27.8%        15.1%        16.4%
+   B    gruppo 3 17.9%                22.0%                16.5%                     13.2%                      28.8%              13.2%               43.2%                          
+   C    gruppo 2 17.9%                18.3%                17.7%                     15.4%                      20.0%              15.0%               21.1%        16.1%        17.5%
+   C    gruppo 3 28.2%                29.0%                28.1%                     20.1%                      36.3%              19.2%               39.0%                          
+
+Gruppo 3 (OPM, MC completo, strutturale): volatilità × soglie
+Caso  Δ volatilità Fattore soglie = 0.8 Fattore soglie = 1 Fattore soglie = 1.2
+   A        -0.100                19.5%              29.2%                38.9%
+   A        -0.050                19.2%              27.9%                36.7%
+   A         0.000                19.1%              27.1%                35.0%
+   A         0.050                19.3%              26.5%                33.7%
+   A         0.100                19.5%              26.3%                32.8%
+   B        -0.100                13.8%              22.0%                43.2%
+   B        -0.050                13.4%              19.3%                34.2%
+   B         0.000                13.2%              17.9%                28.8%
+   B         0.050                13.3%              17.0%                25.5%
+   B         0.100                13.5%              16.5%                23.5%
+   C        -0.100                19.2%              29.0%                39.0%
+   C        -0.050                19.6%              28.5%                37.4%
+   C         0.000                20.1%              28.2%                36.3%
+   C         0.050                20.5%              28.1%                35.5%
+   C         0.100                21.0%              28.1%                34.9%
+
+Gruppo 2 (OPM vs MC completo): volatilità × soglie
+Caso  Δ volatilità Fattore soglie = 0.8 Fattore soglie = 1 Fattore soglie = 1.2
+   A        -0.100                16.1%              18.3%                19.7%
+   A        -0.050                16.1%              18.2%                19.5%
+   A         0.000                16.1%              18.0%                19.3%
+   A         0.050                16.1%              18.0%                19.1%
+   A         0.100                16.2%              17.9%                19.0%
+   B        -0.100                13.4%              19.8%                27.8%
+   B        -0.050                13.0%              17.8%                23.7%
+   B         0.000                12.9%              16.6%                21.1%
+   B         0.050                12.9%              15.9%                19.4%
+   B         0.100                12.9%              15.4%                18.3%
+   C        -0.100                15.0%              18.3%                21.1%
+   C        -0.050                15.2%              18.0%                20.4%
+   C         0.000                15.4%              17.9%                20.0%
+   C         0.050                15.5%              17.8%                19.7%
+   C         0.100                15.7%              17.7%                19.4%
+
+Gruppo 2 (OPM vs MC completo): volatilità × data di exit
+Caso  Δ volatilità Δ exit (anni) = -1 Δ exit (anni) = -0.5 Δ exit (anni) = 0 Δ exit (anni) = 0.5 Δ exit (anni) = 1
+   A        -0.050              15.5%                17.0%             18.2%               19.1%             20.0%
+   A         0.000              15.4%                16.8%             18.0%               18.9%             19.6%
+   A         0.050              15.3%                16.7%             18.0%               18.6%             19.4%
+   B        -0.050              15.9%                16.9%             17.8%               17.3%             16.9%
+   B         0.000              15.1%                15.9%             16.6%               16.4%             16.4%
+   B         0.050              14.6%                15.2%             15.9%               15.8%             16.2%
+   C        -0.050              16.4%                18.3%             18.0%               17.4%             17.5%
+   C         0.000              16.1%                17.8%             17.9%               17.3%             17.5%
+   C         0.050              15.7%                17.5%             17.8%               17.2%             17.4%
+
+Risultati salvati in: risultati/09_approfondimenti.xlsx
+
+==============================================================================
+PASSAGGIO 10 – Grafici e tabelle
+==============================================================================
+
+Grafici prodotti
+Figure                       Short title
+ Fig01                    Payoff profile
+Fig02a Payoff distribution – probability
+Fig02b Payoff distribution – value share
+ Fig03                   Values by model
+ Fig04               Dispersion by group
+ Fig05             Numerical convergence
+ Fig06                  Art. 60 by model
+Fig06b           Art. 60 headroom spread
+ Fig07           Parameter vs model risk
+ Fig08                           Tornado
+ Fig09      Art. 60 sensitivity (Case B)
+ Fig10      Conditional map – thresholds
+ Fig11            Conditional map – exit
+ Fig12                     Discount rate
+Fig13a         PWERM – full distribution
+Fig13b        PWERM – practice scenarios
+ Fig14                     Exit conflict
+ Fig15                  Structural model
+
+Distribuzione del payoff (multipli del prezzo pagato)
+Case                           Measure P(MIP = 0) (%) P(payoff < price paid) (%)  Median (x price)  75th percentile (x price)  90th percentile (x price)  Mean (x price) Share of expected payoff from best 10% (%)
+   A          Real-world (drift at Ke)          53.7%                      64.9%             0.000                      3.475                      9.698           3.099                                      62.9%
+   A Risk-neutral (drift at risk-free)          73.7%                      82.2%             0.000                      0.122                      3.982           1.204                                      82.8%
+   B          Real-world (drift at Ke)          55.6%                      59.9%             0.000                      3.374                      6.836           2.258                                      51.2%
+   B Risk-neutral (drift at risk-free)          71.6%                      75.2%             0.000                      0.952                      4.239           1.185                                      64.9%
+   C          Real-world (drift at Ke)          66.7%                      72.9%             0.000                      1.425                      7.514           2.628                                      76.1%
+   C Risk-neutral (drift at risk-free)          78.3%                      83.1%             0.000                      0.000                      3.457           1.327                                      87.6%
+
+PWERM al Ke e al rendimento richiesto dal MIP (€m, data di valutazione)
+Case  OPM value (€m)  PWERM full distribution at Ke (€m)  PWERM full distribution at MIP return (€m)  PWERM practice scenarios at Ke (€m)  PWERM practice scenarios at MIP return (€m)
+   A           8.996                              14.133                                       8.689                                8.625                                        5.139
+   B           6.971                               9.686                                       6.783                                8.276                                        5.698
+   C          16.038                              20.747                                      15.810                                8.842                                        6.668
+
+Grafici salvati in: risultati/grafici
+Tabelle salvate in: risultati/10_thesis_tables.xlsx
+Caso Variante                               Payoff  Dispersione gruppo 1  Dispersione gruppo 2  Dispersione gruppo 3
+   A     base             Ratchet con salto (base)              0.006488              0.197121              0.327547
+   A       V5 Ratchet smussato su una rampa di ±5%              0.004514              0.197536              0.327401
+   A       V6    Ratchet incrementale, senza salto              0.005091              0.196741              0.346859
+   B     base                      Catch-up (base)              0.002887              0.184183              0.192817
+   B       V7      Senza catch-up, quota s lineare              0.001207              0.216477              0.310961
+
+1. Exit ottima esatta contro LSM
+Caso        Data  MIP LSM  MIP esatta  MIP prima finestra  Esatta − LSM (MIP)  e.s.  Fondo LSM  Fondo esatta  Fondo prima finestra  LSM − prima finestra (fondo)  e.s.   Exit alla prima finestra, LSM  Exit alla prima finestra, esatta  Rapporto art. 60, LSM  Rapporto art. 60, esatta
+   A valutazione    5.915       5.867               5.787              -0.048 0.072    249.207       249.389               249.458                        -0.250  0.514                          0.533                             0.493                  0.025                     0.024
+   A    ingresso    6.288       6.282               6.186              -0.006 0.091    226.572       226.773               226.605                        -0.033  0.662                          0.500                             0.409                  0.026                     0.026
+   B valutazione    3.653       3.941               3.719               0.288 0.032    574.975       575.591               573.814                         1.160  0.995                          0.499                             0.282                  0.007                     0.007
+   B    ingresso    4.339       4.460               4.328               0.120 0.051    534.539       537.382               534.302                         0.238  1.156                          0.527                             0.236                  0.008                     0.008
+
+2. Strutturale con servizio del debito a rendimento costante
+Caso  Volatilità iniziale dell'equity  MIP, strutturale a rendimento costante  MIP, Monte Carlo completo  Scarto
+   A                           0.3203                                  5.5618                     7.5080 -0.2592
+   B                           0.2792                                  5.3491                     5.9022 -0.0937
+   C                           0.4194                                 10.2316                    13.4071 -0.2368
+
+3. Strutturale con margine comune
+ Margine comune Caso  Strutturale base  Strutturale, margine comune  Variazione
+         0.0307    A            6.9651                       6.9001     -0.0093
+         0.0307    B            5.9813                       6.0616      0.0134
+         0.0307    C           12.2574                      12.2219     -0.0029
+         0.0360    A            6.9651                       6.9454     -0.0028
+         0.0360    B            5.9813                       6.1200      0.0232
+         0.0360    C           12.2574                      12.2942      0.0030
+
+4. Volatilità implicita negli scenari del PWERM di prassi
+Caso  Volatilità implicita negli scenari  Volatilità dei modelli a opzioni
+   A                              0.1562                             0.398
+   B                              0.1668                             0.323
+   C                              0.1464                             0.529
+
+5. Scarti in euro della mappa condizionata
+Caso  Δ volatilità  Fattore soglie  Scarto in euro  Dispersione gruppo 3 (+ strutturale)
+   A         -0.10             0.8           1.417                                 0.195
+   A         -0.10             1.0           1.476                                 0.292
+   A         -0.10             1.2           1.397                                 0.389
+   A         -0.05             0.8           1.623                                 0.192
+   A         -0.05             1.0           1.756                                 0.279
+   A         -0.05             1.2           1.758                                 0.367
+   A          0.00             0.8           1.835                                 0.191
+   A          0.00             1.0           2.031                                 0.271
+   A          0.00             1.2           2.102                                 0.350
+   A          0.05             0.8           2.057                                 0.193
+   A          0.05             1.0           2.308                                 0.265
+   A          0.05             1.2           2.435                                 0.337
+   A          0.10             0.8           2.288                                 0.195
+   A          0.10             1.0           2.584                                 0.263
+   A          0.10             1.2           2.759                                 0.328
+   B         -0.10             0.8           0.773                                 0.138
+   B         -0.10             1.0           0.902                                 0.220
+   B         -0.10             1.2           1.189                                 0.432
+   B         -0.05             0.8           0.851                                 0.134
+   B         -0.05             1.0           0.984                                 0.193
+   B         -0.05             1.2           1.306                                 0.342
+   B          0.00             0.8           0.937                                 0.132
+   B          0.00             1.0           1.069                                 0.179
+   B          0.00             1.2           1.386                                 0.288
+   B          0.05             0.8           1.032                                 0.133
+   B          0.05             1.0           1.156                                 0.170
+   B          0.05             1.2           1.464                                 0.255
+   B          0.10             0.8           1.129                                 0.135
+   B          0.10             1.0           1.246                                 0.165
+   B          0.10             1.2           1.556                                 0.235
+   C         -0.10             0.8           2.535                                 0.192
+   C         -0.10             1.0           3.031                                 0.290
+   C         -0.10             1.2           3.294                                 0.390
+   C         -0.05             0.8           2.853                                 0.196
+   C         -0.05             1.0           3.404                                 0.285
+   C         -0.05             1.2           3.739                                 0.374
+   C          0.00             0.8           3.182                                 0.201
+   C          0.00             1.0           3.780                                 0.282
+   C          0.00             1.2           4.178                                 0.363
+   C          0.05             0.8           3.519                                 0.205
+   C          0.05             1.0           4.159                                 0.281
+   C          0.05             1.2           4.609                                 0.355
+   C          0.10             0.8           3.861                                 0.210
+   C          0.10             1.0           4.537                                 0.281
+   C          0.10             1.2           5.033                                 0.349
